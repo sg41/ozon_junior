@@ -14,37 +14,33 @@ using Boxes = std::vector<Box>;
 void parse_field(std::vector<std::string> &field, Boxes &boxes, Coord start,
                  Coord end, int level) {
   Coord top_left, down_rigth;
-  if (level > 0) {
-    start.first += 2;
-    start.second += 2;
-    end.first -= 1;
-    end.second -= 1;
-  }
 
   for (int i = start.first; i < end.first; i++) {
     for (int j = start.second; j < end.second; j++) {
       if (field[i][j] == '*' && (i == 0 || field[i - 1][j] == '.') &&
           (j == 0 || field[i][j - 1] == '.')) {
+        int boxes_before = boxes.size(), i_nex;
         top_left = {i, j};
-        // auto box = std::find_if(
-        //     boxes.begin(), boxes.end(),
-        //     [top_left](auto box) { return std::get<0>(box) == top_left; });
-        // if (box != boxes.end()) {
-        //   j = std::get<1>(*box).second + 1;
-        //   continue;
-        // }
         i += 3;
         while (i < end.first && field[i][j] == '*') i++;
+        while ((size_t)i < field.size() && field[i][j] == '*') i++;
+        if (i > end.first) {
+          end.first = i;
+        }
         j += 3;
         while (j < end.second && field[i - 1][j] == '*') j++;
         down_rigth = {i - 1, j - 1};
         boxes.emplace_back(top_left, down_rigth, 0, level);
         if (down_rigth.first - top_left.first > 5 &&
-            down_rigth.second - top_left.second > 5)
-          parse_field(field, boxes, top_left, down_rigth, level + 1);
+            down_rigth.second - top_left.second > 5) {
+          parse_field(field, boxes, {top_left.first + 2, top_left.second + 2},
+                      {down_rigth.first - 1, down_rigth.second - 1}, level + 1);
+        }
+        parse_field(field, boxes, {top_left.first, down_rigth.second},
+                    {down_rigth.first, end.second}, level);
         field[top_left.first][top_left.second] = '0';  // mark visited
-        i = top_left.first;
-        j = down_rigth.second;
+        i = down_rigth.first;
+        j = 0;
         continue;
       }
     }
@@ -86,6 +82,14 @@ bool is_inside(const Box &a, const Box &b) {
   }
   return res;
 }
+bool is_inside(const Box &a, int i, int j) {
+  bool res = false;
+  if (std::get<0>(a).first < i && std::get<1>(a).first > i &&
+      std::get<0>(a).second < j && std::get<1>(a).second > j) {
+    res = true;
+  }
+  return res;
+}
 void mark_levels(std::vector<Boxes> &boxes, int i) {
   std::sort(boxes[i].begin(), boxes[i].end(),
             [](auto a, auto b) { return std::get<2>(a) > std::get<2>(b); });
@@ -119,8 +123,8 @@ int main(void) {
     for (int j = 0; j < n; j++) {
       std::cin >> field[i][j];
     }
-    // parse_field(field[i], boxes[i], {0, 0}, {n, m}, 0);
-    simple_parse_field(field[i], boxes[i], {0, 0}, {n, m}, 0);
+    parse_field(field[i], boxes[i], {0, 0}, {n, m}, 0);
+    // simple_parse_field(field[i], boxes[i], {0, 0}, {n, m}, 0);
   }
 
   for (int i = 0; i < t; i++) {
