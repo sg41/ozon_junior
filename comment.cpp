@@ -5,30 +5,34 @@
 #include <utility>
 #include <vector>
 
-struct Comment {
-  int parent_id = -1;
-  int id = 0;
-  std::string text;
-  // std::set<Comment> childs{};
-};
+using Comments = std::map<int, std::map<int, std::string>>;
 
-// using Comments = std::map<int, std::vector<Comment>>;
-using Comments = std::map<int, std::vector<Comment>>;
-
-void PrintPrefix(int level) {
+void PrintPrefix(int level, const std::vector<std::string>& prefix) {
   if (level == 0) return;
+  for (auto p : prefix) std::cout << p;
   std::cout << "|\n";
-  std::cout << "|";
-  for (int i = 0; i < level; ++i) {
-    std::cout << "|--";
-  }
+  for (auto p : prefix) std::cout << p;
+  std::cout << "|--";
 }
-void PrintCommentTree(Comments& comments, int parent_id, int level) {
-  for (auto child : comments[parent_id]) {
-    PrintPrefix(level);
-    std::cout << child.text << std::endl;
-    PrintCommentTree(comments, child.id, level + 1);
+void PrintCommentTree(Comments& comments, int parent_id, int level,
+                      std::vector<std::string>& prefix) {
+  size_t count = 0;
+  for (auto [id, text] : comments[parent_id]) {
+    PrintPrefix(level, prefix);
+    if (level != 0) {
+      if (comments[parent_id].size() > 1 &&
+          count != comments[parent_id].size() - 1) {
+        prefix.push_back("|  ");
+      } else {
+        prefix.push_back("   ");
+      }
+    }
+    std::cout << text << std::endl;
+    PrintCommentTree(comments, id, level + 1, prefix);
+    if (prefix.size() > 0) prefix.pop_back();
+    count++;
   }
+  if (level == 1) std::cout << std::endl;
 }
 
 int main(void) {
@@ -43,10 +47,11 @@ int main(void) {
       std::cin >> id >> p;
       std::cin.ignore();
       std::getline(std::cin, text);
-      comments[i][p].push_back({p, id, text});
+      comments[i][p][id] = text;
     }
   }
+  std::vector<std::string> prefix{};
   for (int i = 0; i < t; i++) {
-    PrintCommentTree(comments[i], -1, 0);
+    PrintCommentTree(comments[i], -1, 0, prefix);
   }
 }
