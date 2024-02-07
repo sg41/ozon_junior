@@ -39,16 +39,16 @@ func main() {
 					result = append(result, level)
 					k := x
 					for ; k < len(field[i][y]) && field[i][y][k] == '*'; k++ {
-						depth[i][y][k] = level
+						// depth[i][y][k] = level
 					}
 					s := y
 					for ; s < len(field[i]) && field[i][s][x] == '*'; s++ {
 						depth[i][s][x] = level
 						depth[i][s][k-1] = level - 1
 					}
-					for k_low := x; k_low < k-1; k_low++ {
-						depth[i][s-1][k_low] = level
-					}
+					// for k_low := x; k_low < k-1; k_low++ {
+					// 	depth[i][s-1][k_low] = level
+					// }
 					x = k - 1
 					continue
 				}
